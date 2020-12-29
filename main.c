@@ -11,7 +11,7 @@ int nextState = 0;
 
 // initialize my functions
 void makeArrs(FILE*file);
-void nextMachine(FILE* file, int count);
+void nextMachine(FILE* file);
 int inputChars(FILE* file);
 int numLines(FILE* file);
 
@@ -21,16 +21,18 @@ int main(int argc, char**argv) {
     FILE *file2 = fopen(argv[2], "r");      // open the input file
     if (file1 == NULL || file2 == NULL) {                    // check the file exists
         printf("Error! This file could not be opened\n");       // error message
-        exit(-1);
+        exit(1);
     }
+    inputChars(file2);      // making sure the inputs are right
 
     printf("processing FSM definition file test1.fsm\n");
     printf("FSM has %d transitions\n", numLines(file1));            // prints the number of transitions
     printf("processing FSM input file test1.inputs\n");
 
     rewind(file1);                  // rewinds the fsm file
+    rewind(file2);
     makeArrs(file1);                // rewinds the input file
-    nextMachine(file2, count);      // calls nextMachine function
+    nextMachine(file2);      // calls nextMachine function
     rewind(file2);                  // rewinds the inputs file
     // finishes and sums up the steps and current state
     printf("after %d steps, state machine finished successfully at state %d\n",inputChars(file2), curState);
@@ -43,15 +45,15 @@ int inputChars(FILE* file) {  // this reads and counts all the inputs and ensure
     int step = 0;
     while (((fgets(line, 3, file)) != NULL)) {                                              // gets each line of the text file
         if (line[0] < 'A' || (line[0] > 'Z' && line[0] < 'a') || line[0] > 'z') {           // makes sure its a letter
-            printf("There is an error in the format of your code at this point!");          // error message
-            exit(-1);                                                                       // error output
+            printf("There is an error in the format of your inputs!");          // error message
+            exit(1);                                                                       // error output
         }
         step += 1;              // increments the number of steps
     }
     return step;
 }
 
-void nextMachine(FILE* file, int count){        // this function switches the states based on the input
+void nextMachine(FILE* file){        // this function switches the states based on the input
     char letter;
     int steps = 0;
     while(fscanf(file, "%c\n", &letter) != EOF) {           // reads in the input
