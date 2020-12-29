@@ -70,7 +70,6 @@ int inputChars(FILE* file) {  // this reads and counts all the inputs and ensure
     int step = 0;
     while(fscanf(file, "%c\n", &letter) != EOF) {           // reads in the input                                            // gets each line of the text file
         if (isalpha(letter)==0) {           // makes sure its a letter
-            printf("----Error! There is an error in the format of your inputs.----\n");          // error message
             return -1;                                                                     // error output
         }
         step += 1;              // increments the number of steps
@@ -107,11 +106,9 @@ int makeArrs(FILE* file) {     // this function makes the fsm file into arrays.
     int result = 0;
     while( (result = fscanf(file, "%d:%c>%d\n", &state, &input, &next)) != EOF) {       // read in the lines and set them to variables
         if (state < 0 || next < 0) {                                        // makes sure no states are negative
-            printf("----Error! One of your states is negative.----\n");
             return -1;
         }
         if (result != 3) {                          // make sure the format is not wrong.
-            printf("----Error! One of your states is in the wrong format.----\n");
             return -1;
         }
         stateArr[i] = state;                 // array of current states
