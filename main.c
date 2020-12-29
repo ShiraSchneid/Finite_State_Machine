@@ -30,7 +30,7 @@ int main(int argc, char**argv) {
         exit(1);
     }
 
-    printf("processing FSM definition file test1.fsm\n");
+    printf("processing FSM definition file %s \n", argv[1]);
     if (makeArrs(file1) == -1 || numStates(file1) == -1) {
         printf("----Error! There is an error in your fsm file.----\n");       // error message
         exit(1);
@@ -43,7 +43,7 @@ int main(int argc, char**argv) {
     makeArrs(file1);                //checks that the states can't be negative
     rewind(file1);                      //rewinds the fsm file
     printf("FSM has %d transitions\n", numLines(file1));            // prints the number of transitions
-    printf("processing FSM input file test1.inputs\n");
+    printf("processing FSM input file %s \n", argv[2]);
     inputChars(file2);      // making sure the inputs are letters
 
     rewind(file1);                  // rewinds the fsm file
