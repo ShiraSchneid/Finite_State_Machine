@@ -131,7 +131,7 @@ int numStates() {                       // this function counts the number of di
                 break;
             }
         }
-        if (i == j +1){
+        if (i == j ){
             res +=1;
         }
     }
