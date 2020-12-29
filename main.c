@@ -18,7 +18,8 @@ int numLines(FILE* file);
 int numStates();
 void negNumTest(FILE* file);
 void nonLetterTest(FILE* file);
-void stateSizeTest(FILE* file);
+void stateSizeTest();
+void fsmFormatTest(FILE* file);
 
 
 int main(int argc, char**argv) {
@@ -30,6 +31,15 @@ int main(int argc, char**argv) {
     }
 
     printf("processing FSM definition file test1.fsm\n");
+    if (makeArrs(file1) == -1 || numStates(file1) == -1) {
+        printf("----Error! There is an error in your fsm file.----\n");       // error message
+        exit(1);
+    }
+    if (inputChars(file2) == -1) {
+        printf("----Error! There is an error in your inputs file.----\n");       // error message
+        exit(1);
+    }
+
     makeArrs(file1);                //checks that the states can't be negative
     rewind(file1);                      //rewinds the fsm file
     printf("FSM has %d transitions\n", numLines(file1));            // prints the number of transitions
@@ -42,24 +52,24 @@ int main(int argc, char**argv) {
     rewind(file2);                  // rewinds the inputs file
     // finishes and sums up the steps and current state
     printf("after %d steps, state machine finished successfully at state %d\n",inputChars(file2), curState);
-    printf("This is the unique states %d\n", numStates());
+    // calling the test functions
     negNumTest(file1);
     nonLetterTest(file2);
-    stateSizeTest(file1);
+    stateSizeTest();
+    fsmFormatTest(file1);
 
-
-    fclose(file1);      //close the files
+    //close the files
+    fclose(file1);
     fclose(file2);
 }
 
 int inputChars(FILE* file) {  // this reads and counts all the inputs and ensures right format.
-    char line[3];
     char letter;
     int step = 0;
     while(fscanf(file, "%c\n", &letter) != EOF) {           // reads in the input                                            // gets each line of the text file
         if (isalpha(letter)==0) {           // makes sure its a letter
             printf("----Error! There is an error in the format of your inputs.----\n");          // error message
-            exit(1);                                                                     // error output
+            return -1;                                                                     // error output
         }
         step += 1;              // increments the number of steps
     }
@@ -92,10 +102,15 @@ int makeArrs(FILE* file) {     // this function makes the fsm file into arrays.
     int next;
     char input;
     int i=0;
-    while(fscanf(file, "%d:%c>%d\n", &state, &input, &next) != EOF) {       // read in the lines and set them to variables
+    int result = 0;
+    while( (result = fscanf(file, "%d:%c>%d\n", &state, &input, &next)) != EOF) {       // read in the lines and set them to variables
         if (state < 0 || next < 0) {                                        // makes sure no states are negative
             printf("----Error! One of your states is negative.----\n");
-            exit(1);
+            return -1;
+        }
+        if (result != 3) {                          // make sure the format is not wrong.
+            printf("----Error! One of your states is in the wrong format.----\n");
+            return -1;
         }
         stateArr[i] = state;                 // array of current states
         inputArr[i] = input;                // array of input
@@ -105,7 +120,7 @@ int makeArrs(FILE* file) {     // this function makes the fsm file into arrays.
     return 0;
 }
 
-int numStates() {                       // this function counts the number of distinct states
+int numStates() {                       // this function counts the number of distinct states in the file in main
     int res = 0;
     for (int i = 0; i < count; i++) {
         int j = 0;
@@ -118,9 +133,9 @@ int numStates() {                       // this function counts the number of di
             res +=1;
         }
     }
-    if (res > 50){                  // if there are more than 50 distinct states, rasie an error.
+    if (res > 50){                  // if there are more than 50 distinct states, raise an error.
         printf("----Error! You have too many different states.----");
-        exit(1);
+        return -1;
     }
     return res;                 // return the number of distinct states
 }
@@ -134,9 +149,8 @@ int numLines(FILE* file) {  // this function counts the number of lines in the f
 }
 
 
-
 // testing functions
-void negNumTest(FILE* file) {
+void negNumTest(FILE* file) {       // tests that it will be wrong if there is a negative numberr state
     int actual = makeArrs(file);
     int expected = 0;
     printf("Testing with correct state input: %s\n", (expected == actual ? "PASSED": "FAILED"));
@@ -145,7 +159,7 @@ void negNumTest(FILE* file) {
     expected = -1;
     printf("Testing with incorrect state input: %s\n", (expected == actual ? "PASSED": "FAILED"));
 }
-void nonLetterTest(FILE* file) {
+void nonLetterTest(FILE* file) {            // tests that an input must be a letter (lowercase or capital)
     int actual = inputChars(file);
     int expected = 0;
     printf("Testing with correct fsm input: %s\n", (expected == actual ? "PASSED": "FAILED"));
@@ -155,17 +169,21 @@ void nonLetterTest(FILE* file) {
     printf("Testing with incorrect fsm input: %s\n", (expected == actual ? "PASSED": "FAILED"));
 }
 
-void stateSizeTest(FILE* file) {
-    int actual = numStates(file);
-    int expected = 4;
+void stateSizeTest() {        // tests that the file has less than 50 states
+    int actual = numStates();
+    int expected = 5;
     printf("Testing with valid number of states: %s\n", (expected == actual ? "PASSED": "FAILED"));
-    FILE* fsm3 = fopen("test3.fsm", "r");
-    actual = numStates(fsm3);
-    expected = -1;
-    printf("Testing with invalid fsm size: %s\n", (expected == actual ? "PASSED": "FAILED"));
         }
 
-
+void fsmFormatTest(FILE* file) {        // tests that the format of the file is right.
+    int actual = makeArrs(file);
+    int expected = 0;
+    printf("Testing with valid format of fsm states: %s\n", (expected == actual ? "PASSED": "FAILED"));
+    FILE* fsm3 = fopen("test3.fsm", "r");
+    actual = makeArrs(fsm3);
+    expected = -1;
+    printf("Testing with invalid format of fsm states: %s\n", (expected == actual ? "PASSED": "FAILED"));
+}
 
 
 
