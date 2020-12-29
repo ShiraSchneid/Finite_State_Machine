@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> // For exit() function
+#include <ctype.h>
 
 // initialize my variables
 int count = 0;
@@ -14,15 +15,17 @@ int makeArrs(FILE*file);
 int nextMachine(FILE* file);
 int inputChars(FILE* file);
 int numLines(FILE* file);
-void negNum();
-void nonLetter();
+int numStates();
+void negNumTest(FILE* file);
+void nonLetterTest(FILE* file);
+void stateSizeTest(FILE* file);
 
 
-        int main(int argc, char**argv) {
+int main(int argc, char**argv) {
     FILE *file1 = fopen(argv[1], "r");      // open the fsm file
     FILE *file2 = fopen(argv[2], "r");      // open the input file
     if (file1 == NULL || file2 == NULL) {                    // check the file exists
-        printf("Error! This file could not be opened\n");       // error message
+        printf("----Error! This file could not be opened----\n");       // error message
         exit(1);
     }
 
@@ -39,9 +42,10 @@ void nonLetter();
     rewind(file2);                  // rewinds the inputs file
     // finishes and sums up the steps and current state
     printf("after %d steps, state machine finished successfully at state %d\n",inputChars(file2), curState);
-
-    negNum(file1);
-    nonLetter(file2);
+    printf("This is the unique states %d\n", numStates());
+    negNumTest(file1);
+    nonLetterTest(file2);
+    stateSizeTest(file1);
 
 
     fclose(file1);      //close the files
@@ -50,11 +54,12 @@ void nonLetter();
 
 int inputChars(FILE* file) {  // this reads and counts all the inputs and ensures right format.
     char line[3];
+    char letter;
     int step = 0;
-    while (((fgets(line, 3, file)) != NULL)) {                                              // gets each line of the text file
-        if (line[0] < 'A' || (line[0] > 'Z' && line[0] < 'a') || line[0] > 'z') {           // makes sure its a letter
+    while(fscanf(file, "%c\n", &letter) != EOF) {           // reads in the input                                            // gets each line of the text file
+        if (isalpha(letter)==0) {           // makes sure its a letter
             printf("----Error! There is an error in the format of your inputs.----\n");          // error message
-            return -1;                                                                       // error output
+            exit(1);                                                                     // error output
         }
         step += 1;              // increments the number of steps
     }
@@ -67,7 +72,8 @@ int nextMachine(FILE* file){        // this function switches the states based o
     while(fscanf(file, "%c\n", &letter) != EOF) {           // reads in the input
         printf("\tat step %d, %c", steps, letter);          // prints the current step and the input
         for (int a = 0; a < count; a++) {                           // goes through a loop of the number of inputs
-            if (letter == inputArr[a] && curState == stateArr[a]) {         // if the input is the same and the current state is the same
+            char lower = tolower(letter);                       // allows the input to be upper or lower case
+            if ((letter == inputArr[a] || lower == inputArr[a]) && curState == stateArr[a]) {    // if the input is the same and the current state is the same
                 printf(" transitions from state %d ",curState);          // print this and the current state
                 nextState = nextArr[a];                                 // update the next state to be the determined next state
                 curState = nextState;                               // update the current state to be the next state
@@ -89,7 +95,7 @@ int makeArrs(FILE* file) {     // this function makes the fsm file into arrays.
     while(fscanf(file, "%d:%c>%d\n", &state, &input, &next) != EOF) {       // read in the lines and set them to variables
         if (state < 0 || next < 0) {                                        // makes sure no states are negative
             printf("----Error! One of your states is negative.----\n");
-            return -1;
+            exit(1);
         }
         stateArr[i] = state;                 // array of current states
         inputArr[i] = input;                // array of input
@@ -97,6 +103,26 @@ int makeArrs(FILE* file) {     // this function makes the fsm file into arrays.
         i ++;
     }
     return 0;
+}
+
+int numStates() {                       // this function counts the number of distinct states
+    int res = 0;
+    for (int i = 0; i < count; i++) {
+        int j = 0;
+        for (j = 0; j<i; j++){
+            if (stateArr[i] == stateArr[j]){
+                break;
+            }
+        }
+        if (i == j +1){
+            res +=1;
+        }
+    }
+    if (res > 50){                  // if there are more than 50 distinct states, rasie an error.
+        printf("----Error! You have too many different states.----");
+        exit(1);
+    }
+    return res;                 // return the number of distinct states
 }
 
 int numLines(FILE* file) {  // this function counts the number of lines in the fsm file
@@ -109,28 +135,36 @@ int numLines(FILE* file) {  // this function counts the number of lines in the f
 
 
 
-
 // testing functions
-void negNum(FILE* file) {
-    int code = makeArrs(file);
+void negNumTest(FILE* file) {
+    int actual = makeArrs(file);
     int expected = 0;
-    printf("Testing with correct state input: %s\n", (expected == code ? "PASSED": "FAILED"));
+    printf("Testing with correct state input: %s\n", (expected == actual ? "PASSED": "FAILED"));
     FILE* fsm2 = fopen("test2.fsm", "r");
-    code = makeArrs(fsm2);
+    actual = makeArrs(fsm2);
     expected = -1;
-    printf("Testing with incorrect state input: %s\n", (expected == code ? "PASSED": "FAILED"));
+    printf("Testing with incorrect state input: %s\n", (expected == actual ? "PASSED": "FAILED"));
 }
-void nonLetter(FILE* file) {
-    int code = inputChars(file);
+void nonLetterTest(FILE* file) {
+    int actual = inputChars(file);
     int expected = 0;
-    printf("Testing with correct fsm input: %s\n", (expected == code ? "PASSED": "FAILED"));
+    printf("Testing with correct fsm input: %s\n", (expected == actual ? "PASSED": "FAILED"));
     FILE* input2 = fopen("test2.inputs", "r");
-    code = inputChars(input2);
+    actual = inputChars(input2);
     expected = -1;
-    printf("Testing with incorrect fsm input: %s\n", (expected == code ? "PASSED": "FAILED"));
-
-
+    printf("Testing with incorrect fsm input: %s\n", (expected == actual ? "PASSED": "FAILED"));
 }
+
+void stateSizeTest(FILE* file) {
+    int actual = numStates(file);
+    int expected = 4;
+    printf("Testing with valid number of states: %s\n", (expected == actual ? "PASSED": "FAILED"));
+    FILE* fsm3 = fopen("test3.fsm", "r");
+    actual = numStates(fsm3);
+    expected = -1;
+    printf("Testing with invalid fsm size: %s\n", (expected == actual ? "PASSED": "FAILED"));
+        }
+
 
 
 
