@@ -35,15 +35,16 @@ int main(int argc, char**argv) {
         printf("----Error! There is an error in your fsm file.----\n");       // error message
         exit(1);
     }
+    makeArrs(file1);                //checks that the states can't be negative
+    rewind(file1);                      //rewinds the fsm file
+    printf("FSM has %d transitions\n", numLines(file1));            // prints the number of transitions
+    printf("processing FSM input file %s \n", argv[2]);
+
     if (inputChars(file2) == -1) {
         printf("----Error! There is an error in your inputs file.----\n");       // error message
         exit(1);
     }
 
-    makeArrs(file1);                //checks that the states can't be negative
-    rewind(file1);                      //rewinds the fsm file
-    printf("FSM has %d transitions\n", numLines(file1));            // prints the number of transitions
-    printf("processing FSM input file %s \n", argv[2]);
     inputChars(file2);      // making sure the inputs are letters
 
     rewind(file1);                  // rewinds the fsm file
@@ -52,6 +53,7 @@ int main(int argc, char**argv) {
     rewind(file2);                  // rewinds the inputs file
     // finishes and sums up the steps and current state
     printf("after %d steps, state machine finished successfully at state %d\n",inputChars(file2), curState);
+
     // calling the test functions
     negNumTest(file1);
     nonLetterTest(file2);
@@ -159,6 +161,7 @@ void negNumTest(FILE* file) {       // tests that it will be wrong if there is a
     expected = -1;
     printf("Testing with incorrect state input: %s\n", (expected == actual ? "PASSED": "FAILED"));
 }
+
 void nonLetterTest(FILE* file) {            // tests that an input must be a letter (lowercase or capital)
     int actual = inputChars(file);
     int expected = 0;
@@ -173,7 +176,7 @@ void stateSizeTest() {        // tests that the file has less than 50 states
     int actual = numStates();
     int expected = 5;
     printf("Testing with valid number of states: %s\n", (expected == actual ? "PASSED": "FAILED"));
-        }
+}
 
 void fsmFormatTest(FILE* file) {        // tests that the format of the file is right.
     int actual = makeArrs(file);
